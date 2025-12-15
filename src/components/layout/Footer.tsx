@@ -12,7 +12,7 @@ const Footer = ({ onNavigate, onShowGDPR }: FooterProps) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
-            <h3 className="text-lg font-bold mb-4">CV-Optimalisering</h3>
+            <h3 className="text-lg font-bold mb-4">CV-Buddy</h3>
             <p className="text-muted text-sm">
               AI-drevet CV-optimalisering for det norske arbeidsmarkedet.
             </p>
@@ -58,7 +58,7 @@ const Footer = ({ onNavigate, onShowGDPR }: FooterProps) => {
         <div className="pt-8 border-t border-muted/20">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted">
-              © 2024 CV-Optimalisering. Alle rettigheter reservert.
+              © 2024 CV-Buddy. Alle rettigheter reservert.
             </p>
             <div className="flex items-center gap-4 text-sm text-muted">
               <span className="flex items-center gap-1">
