@@ -18,7 +18,7 @@ const Navigation = ({ onNavigate, onShowGDPR }: NavigationProps) => {
             onClick={() => onNavigate('home')}
             className="text-xl font-bold text-foreground hover:text-primary transition-colors"
           >
-            CV-Optimalisering
+            CV-Buddy
           </button>
 
           <div className="hidden md:flex items-center gap-6">
