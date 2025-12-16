@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import type { AppStep } from '@/types/cv';
+import logo from '@/assets/cvbuddy-logo.png';
 
 interface NavigationProps {
   onNavigate: (step: AppStep) => void;
@@ -16,9 +17,9 @@ const Navigation = ({ onNavigate, onShowGDPR }: NavigationProps) => {
         <div className="flex justify-between items-center h-16">
           <button
             onClick={() => onNavigate('home')}
-            className="text-xl font-bold text-foreground hover:text-primary transition-colors"
+            className="hover:opacity-80 transition-opacity"
           >
-            CV-Buddy
+            <img src={logo} alt="CV-Buddy" className="h-10" />
           </button>
 
           <div className="hidden md:flex items-center gap-6">
