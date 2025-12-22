@@ -1,0 +1,10 @@
+project_id = "bzmllbkqatdddyzlrisr"
+
+[functions.optimize-cv]
+verify_jwt = false
+
+[functions.fetch-url]
+verify_jwt = false
+
+[functions.parse-document]
+verify_jwt = false
