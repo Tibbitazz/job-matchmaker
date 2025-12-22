@@ -4,7 +4,10 @@ import Footer from '@/components/layout/Footer';
 import CookieBanner from '@/components/CookieBanner';
 import GDPRModal from '@/components/GDPRModal';
 import ReviewCard from '@/components/ReviewCard';
+import { FileUpload } from '@/components/FileUpload';
+import { UrlInput } from '@/components/UrlInput';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCookieConsent } from '@/hooks/useCookieConsent';
 import { useCV } from '@/hooks/useCV';
 import { reviews } from '@/data/reviews';
@@ -16,7 +19,10 @@ import {
   CheckCircle, 
   Sparkles, 
   AlertCircle, 
-  ChevronRight 
+  ChevronRight,
+  FileText,
+  Link,
+  Type
 } from 'lucide-react';
 
 const Index = () => {
@@ -26,6 +32,8 @@ const Index = () => {
   const {
     cvText,
     setCvText,
+    coverLetterText,
+    setCoverLetterText,
     jobDescription,
     setJobDescription,
     result,
@@ -33,7 +41,10 @@ const Index = () => {
     progress,
     error,
     processCV,
+    downloadCV,
+    downloadCoverLetter,
     downloadResults,
+    reset,
   } = useCV();
 
   const handleProcess = async () => {
@@ -102,7 +113,7 @@ const Index = () => {
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Last opp CV</h3>
                   <p className="text-muted-foreground text-sm">
-                    Lim inn din CV og stillingsbeskrivelsen
+                    Last opp PDF/Word eller lim inn tekst
                   </p>
                 </div>
                 <div className="text-center">
@@ -166,7 +177,7 @@ const Index = () => {
                 Last opp ditt søknadsmateriale
               </h1>
               <p className="text-muted-foreground">
-                Lim inn din CV og stillingsbeskrivelsen for AI-optimalisering
+                Last opp filer eller lim inn tekst - AI-en gjør resten
               </p>
             </div>
 
@@ -174,35 +185,140 @@ const Index = () => {
               <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-destructive">Teknisk feil</p>
+                  <p className="font-medium text-destructive">Feil</p>
                   <p className="text-sm text-destructive/80">{error}</p>
                 </div>
               </div>
             )}
 
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Din CV (tekst)
-                </label>
-                <textarea
-                  value={cvText}
-                  onChange={(e) => setCvText(e.target.value)}
-                  placeholder="Lim inn din CV her..."
-                  className="w-full h-48 px-4 py-3 bg-background border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none text-foreground placeholder:text-muted-foreground"
-                />
+            <div className="space-y-8">
+              {/* CV Section */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-5 h-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">Din CV</h2>
+                </div>
+                
+                <Tabs defaultValue="upload" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="upload" className="gap-2">
+                      <Upload className="w-4 h-4" />
+                      Last opp fil
+                    </TabsTrigger>
+                    <TabsTrigger value="text" className="gap-2">
+                      <Type className="w-4 h-4" />
+                      Lim inn tekst
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload">
+                    <FileUpload
+                      label="CV"
+                      onTextExtracted={(text) => setCvText(text)}
+                    />
+                    {cvText && (
+                      <p className="mt-2 text-sm text-primary">
+                        ✓ CV lastet inn ({cvText.length} tegn)
+                      </p>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="text">
+                    <textarea
+                      value={cvText}
+                      onChange={(e) => setCvText(e.target.value)}
+                      placeholder="Lim inn din CV her..."
+                      className="w-full h-48 px-4 py-3 bg-background border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none text-foreground placeholder:text-muted-foreground"
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Stillingsbeskrivelse
-                </label>
-                <textarea
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Lim inn stillingsbeskrivelsen her..."
-                  className="w-full h-40 px-4 py-3 bg-background border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none text-foreground placeholder:text-muted-foreground"
-                />
+              {/* Cover Letter Section (Optional) */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">Eksisterende søknadsbrev</h2>
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">Valgfritt</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Har du et søknadsbrev fra før? Last det opp så forbedrer vi det. Ellers lager vi et nytt.
+                </p>
+                
+                <Tabs defaultValue="upload" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="upload" className="gap-2">
+                      <Upload className="w-4 h-4" />
+                      Last opp fil
+                    </TabsTrigger>
+                    <TabsTrigger value="text" className="gap-2">
+                      <Type className="w-4 h-4" />
+                      Lim inn tekst
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload">
+                    <FileUpload
+                      label="søknadsbrev"
+                      onTextExtracted={(text) => setCoverLetterText(text)}
+                    />
+                    {coverLetterText && (
+                      <p className="mt-2 text-sm text-primary">
+                        ✓ Søknadsbrev lastet inn ({coverLetterText.length} tegn)
+                      </p>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="text">
+                    <textarea
+                      value={coverLetterText}
+                      onChange={(e) => setCoverLetterText(e.target.value)}
+                      placeholder="Lim inn ditt eksisterende søknadsbrev her..."
+                      className="w-full h-32 px-4 py-3 bg-background border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none text-foreground placeholder:text-muted-foreground"
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              {/* Job Description Section */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap className="w-5 h-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">Stillingsbeskrivelse</h2>
+                </div>
+                
+                <Tabs defaultValue="url" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="url" className="gap-2">
+                      <Link className="w-4 h-4" />
+                      Fra URL
+                    </TabsTrigger>
+                    <TabsTrigger value="text" className="gap-2">
+                      <Type className="w-4 h-4" />
+                      Lim inn tekst
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="url">
+                    <UrlInput
+                      onContentFetched={(content) => setJobDescription(content)}
+                    />
+                    {jobDescription && (
+                      <p className="mt-2 text-sm text-primary">
+                        ✓ Stillingsbeskrivelse hentet ({jobDescription.length} tegn)
+                      </p>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="text">
+                    <textarea
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      placeholder="Lim inn stillingsbeskrivelsen her..."
+                      className="w-full h-40 px-4 py-3 bg-background border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none text-foreground placeholder:text-muted-foreground"
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
 
               <Button
@@ -218,8 +334,8 @@ const Index = () => {
                   </>
                 ) : (
                   <>
-                    <Zap className="w-5 h-5" />
-                    Optimaliser CV
+                    <Sparkles className="w-5 h-5" />
+                    Optimaliser med AI
                   </>
                 )}
               </Button>
@@ -252,29 +368,69 @@ const Index = () => {
                 <div className="bg-primary text-primary-foreground rounded-2xl p-8 mb-8 text-center">
                   <CheckCircle className="w-12 h-12 mx-auto mb-4" />
                   <h2 className="text-3xl font-bold mb-2">Ferdig!</h2>
-                  <p className="opacity-90">Din CV er optimalisert</p>
+                  <p className="opacity-90">Din CV og søknadsbrev er optimalisert</p>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
-                    <h3 className="text-xl font-bold text-foreground mb-4">Original CV</h3>
-                    <div className="bg-muted rounded-lg p-4 h-80 overflow-y-auto text-sm text-muted-foreground whitespace-pre-wrap">
-                      {cvText}
+                {/* Analysis Section */}
+                {result.analysis && (result.analysis.keywords.length > 0 || result.analysis.values.length > 0) && (
+                  <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-6">
+                    <h3 className="text-xl font-bold text-foreground mb-4">Analyse</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {result.analysis.keywords.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-foreground mb-2">Nøkkelord inkludert</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {result.analysis.keywords.map((keyword, i) => (
+                              <span key={i} className="px-2 py-1 bg-primary/10 text-primary text-sm rounded-full">
+                                {keyword}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {result.analysis.values.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-foreground mb-2">Verdier matchet</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {result.analysis.values.map((value, i) => (
+                              <span key={i} className="px-2 py-1 bg-accent text-accent-foreground text-sm rounded-full">
+                                {value}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
+                )}
 
+                <div className="grid lg:grid-cols-2 gap-6 mb-8">
+                  {/* Optimized CV */}
                   <div className="bg-card rounded-xl p-6 shadow-sm border-2 border-primary">
-                    <h3 className="text-xl font-bold text-foreground mb-4">Optimalisert CV</h3>
-                    <div className="bg-primary/10 rounded-lg p-4 h-80 overflow-y-auto text-sm text-foreground whitespace-pre-wrap">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-foreground">Optimalisert CV</h3>
+                      <Button variant="outline" size="sm" onClick={downloadCV} className="gap-2">
+                        <Download className="w-4 h-4" />
+                        Last ned
+                      </Button>
+                    </div>
+                    <div className="bg-primary/5 rounded-lg p-4 h-96 overflow-y-auto text-sm text-foreground whitespace-pre-wrap font-mono">
                       {result.optimizedCV}
                     </div>
                   </div>
-                </div>
 
-                <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-8">
-                  <h3 className="text-xl font-bold text-foreground mb-4">Søknadsbrev</h3>
-                  <div className="bg-primary/5 rounded-lg p-4 text-foreground whitespace-pre-wrap">
-                    {result.coverLetter}
+                  {/* Cover Letter */}
+                  <div className="bg-card rounded-xl p-6 shadow-sm border-2 border-primary">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-foreground">Søknadsbrev</h3>
+                      <Button variant="outline" size="sm" onClick={downloadCoverLetter} className="gap-2">
+                        <Download className="w-4 h-4" />
+                        Last ned
+                      </Button>
+                    </div>
+                    <div className="bg-primary/5 rounded-lg p-4 h-96 overflow-y-auto text-sm text-foreground whitespace-pre-wrap">
+                      {result.coverLetter}
+                    </div>
                   </div>
                 </div>
 
@@ -282,16 +438,29 @@ const Index = () => {
                   <h3 className="text-2xl font-bold text-primary-foreground mb-2">
                     Last ned komplett pakke
                   </h3>
-                  <p className="text-primary-foreground/80 mb-6">CV + Søknadsbrev</p>
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    onClick={downloadResults}
-                    className="gap-2"
-                  >
-                    <Download className="w-5 h-5" />
-                    Last ned nå
-                  </Button>
+                  <p className="text-primary-foreground/80 mb-6">CV + Søknadsbrev i én fil</p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      onClick={downloadResults}
+                      className="gap-2"
+                    >
+                      <Download className="w-5 h-5" />
+                      Last ned alt
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => {
+                        reset();
+                        setStep('upload');
+                      }}
+                      className="gap-2 bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20 hover:bg-primary-foreground/20"
+                    >
+                      Start på nytt
+                    </Button>
+                  </div>
                 </div>
               </>
             ) : (

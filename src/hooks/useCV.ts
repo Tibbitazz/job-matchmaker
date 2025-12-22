@@ -1,11 +1,10 @@
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import type { CVResult } from '@/types/cv';
-
-// Mock delay function
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const useCV = () => {
   const [cvText, setCvText] = useState('');
+  const [coverLetterText, setCoverLetterText] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [result, setResult] = useState<CVResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -13,80 +12,117 @@ export const useCV = () => {
   const [error, setError] = useState('');
 
   const processCV = async () => {
-    if (!cvText || !jobDescription) return;
+    if (!cvText || !jobDescription) {
+      setError('Vennligst fyll ut både CV og stillingsbeskrivelse');
+      return;
+    }
 
     setLoading(true);
     setError('');
+    setResult(null);
 
     try {
       setProgress('Analyserer stillingsbeskrivelsen...');
-      await delay(1500);
+      
+      // Small delay for UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setProgress('Optimaliserer CV med AI...');
 
-      setProgress('Optimaliserer CV-en...');
-      await delay(2000);
+      const { data, error: invokeError } = await supabase.functions.invoke('optimize-cv', {
+        body: {
+          cvText,
+          coverLetterText,
+          jobDescription,
+        },
+      });
 
-      setProgress('Genererer søknadsbrev...');
-      await delay(1500);
+      if (invokeError) {
+        console.error('Supabase invoke error:', invokeError);
+        throw new Error(invokeError.message || 'Kunne ikke kontakte AI-tjenesten');
+      }
 
-      // Mock result
-      const mockResult: CVResult = {
-        optimizedCV: `SAMMENDRAG
-Erfaren profesjonell med dokumentert evne til å levere resultater. Kombinerer teknisk kompetanse med sterke samarbeidsevner og forståelse for det norske arbeidsmarkedet.
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-ERFARING
-${cvText.slice(0, 200)}...
+      setProgress('Ferdigstiller resultater...');
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-NØKKELKOMPETANSE
-• Teamarbeid og samarbeid
-• Prosjektledelse
-• Resultatfokusert tilnærming
-• Kommunikasjon på norsk og engelsk
-
-UTDANNING
-Relevant utdanning tilpasset stillingen`,
-        coverLetter: `Kjære [Arbeidsgiver],
-
-Jeg søker herved på stillingen som beskrevet i utlysningen. Min bakgrunn og erfaring gjør meg til en sterk kandidat for denne rollen.
-
-Gjennom min karriere har jeg utviklet kompetanse som er direkte relevant for de oppgavene stillingen innebærer. Jeg er særlig motivert av muligheten til å bidra i et team som verdsetter samarbeid og innovasjon.
-
-Jeg ser frem til muligheten for å diskutere hvordan jeg kan bidra til deres organisasjon.
-
-Med vennlig hilsen,
-[Ditt navn]`,
+      const cvResult: CVResult = {
+        optimizedCV: data.optimizedCV || '',
+        coverLetter: data.coverLetter || '',
         analysis: {
-          keywords: ['teamarbeid', 'erfaring', 'kompetanse'],
-          values: ['samarbeid', 'innovasjon'],
-          responsibilities: [],
-          qualifications: [],
+          keywords: data.analysis?.keywords || [],
+          values: data.analysis?.values || [],
+          responsibilities: data.analysis?.strengths || [],
+          qualifications: data.analysis?.improvements || [],
         },
       };
 
-      setResult(mockResult);
+      setResult(cvResult);
     } catch (err) {
-      setError('Noe gikk galt. Vennligst prøv igjen.');
+      console.error('CV processing error:', err);
+      setError(err instanceof Error ? err.message : 'En uventet feil oppstod. Vennligst prøv igjen.');
     } finally {
       setLoading(false);
       setProgress('');
     }
   };
 
-  const downloadResults = () => {
-    if (!result) return;
+  const downloadCV = () => {
+    if (!result?.optimizedCV) return;
 
-    const content = `=== OPTIMALISERT CV ===\n\n${result.optimizedCV}\n\n=== SØKNADSBREV ===\n\n${result.coverLetter}`;
+    const content = result.optimizedCV;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'optimalisert-cv.md';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadCoverLetter = () => {
+    if (!result?.coverLetter) return;
+
+    const content = result.coverLetter;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'cv-optimalisert.txt';
+    a.download = 'soknadsbrev.txt';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const downloadResults = () => {
+    if (!result) return;
+
+    const content = `=== OPTIMALISERT CV ===\n\n${result.optimizedCV}\n\n\n=== SØKNADSBREV ===\n\n${result.coverLetter}`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cv-og-soknadsbrev.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const reset = () => {
+    setCvText('');
+    setCoverLetterText('');
+    setJobDescription('');
+    setResult(null);
+    setError('');
+    setProgress('');
   };
 
   return {
     cvText,
     setCvText,
+    coverLetterText,
+    setCoverLetterText,
     jobDescription,
     setJobDescription,
     result,
@@ -94,6 +130,9 @@ Med vennlig hilsen,
     progress,
     error,
     processCV,
+    downloadCV,
+    downloadCoverLetter,
     downloadResults,
+    reset,
   };
 };
