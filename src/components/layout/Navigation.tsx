@@ -19,7 +19,7 @@ const Navigation = ({ onNavigate, onShowGDPR }: NavigationProps) => {
             onClick={() => onNavigate('home')}
             className="hover:opacity-80 transition-opacity"
           >
-            <img src={logo} alt="CV-Buddy" className="h-10" />
+            <img src={logo} alt="CV-Buddy" className="h-14" />
           </button>
 
           <div className="hidden md:flex items-center gap-6">
