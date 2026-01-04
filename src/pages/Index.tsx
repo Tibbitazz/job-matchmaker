@@ -8,8 +8,11 @@ import { FileUpload } from '@/components/FileUpload';
 import { UrlInput } from '@/components/UrlInput';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { useCookieConsent } from '@/hooks/useCookieConsent';
 import { useCV } from '@/hooks/useCV';
+import { useAuth } from '@/hooks/useAuth';
+import { useSavedOptimizations } from '@/hooks/useSavedOptimizations';
 import { reviews } from '@/data/reviews';
 import type { AppStep } from '@/types/cv';
 import { 
@@ -22,13 +25,21 @@ import {
   ChevronRight,
   FileText,
   Link,
-  Type
+  Type,
+  Save,
+  Loader2
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [step, setStep] = useState<AppStep>('home');
   const [showGDPR, setShowGDPR] = useState(false);
+  const [saveTitle, setSaveTitle] = useState('');
+  const [saving, setSaving] = useState(false);
   const { showBanner, accept, decline } = useCookieConsent();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { saveOptimization } = useSavedOptimizations(user?.id);
   const {
     cvText,
     setCvText,
@@ -50,6 +61,40 @@ const Index = () => {
   const handleProcess = async () => {
     await processCV();
     setStep('preview');
+  };
+
+  const handleSave = async () => {
+    if (!result || !saveTitle.trim()) {
+      toast({
+        title: 'Feil',
+        description: 'Vennligst oppgi en tittel for optimaliseringen',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSaving(true);
+    const { error: saveError } = await saveOptimization(
+      saveTitle.trim(),
+      cvText,
+      jobDescription,
+      result
+    );
+
+    if (saveError) {
+      toast({
+        title: 'Kunne ikke lagre',
+        description: saveError,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Lagret!',
+        description: 'Optimaliseringen er lagret i din konto',
+      });
+      setSaveTitle('');
+    }
+    setSaving(false);
   };
 
   // Home Page
@@ -433,6 +478,32 @@ const Index = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Save Section - Only for logged in users */}
+                {user && (
+                  <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                      <Save className="w-5 h-5 text-primary" />
+                      Lagre optimalisering
+                    </h3>
+                    <div className="flex gap-3">
+                      <Input
+                        placeholder="Gi optimaliseringen en tittel (f.eks. 'Markedsfører hos Telenor')"
+                        value={saveTitle}
+                        onChange={(e) => setSaveTitle(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button onClick={handleSave} disabled={saving || !saveTitle.trim()} className="gap-2">
+                        {saving ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4" />
+                        )}
+                        Lagre
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-primary rounded-2xl p-8 text-center">
                   <h3 className="text-2xl font-bold text-primary-foreground mb-2">

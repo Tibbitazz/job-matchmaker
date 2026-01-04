@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_optimizations: {
+        Row: {
+          analysis: Json | null
+          cover_letter: string | null
+          created_at: string
+          id: string
+          job_description: string | null
+          optimized_cv: string
+          original_cv: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          analysis?: Json | null
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_description?: string | null
+          optimized_cv: string
+          original_cv?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          analysis?: Json | null
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_description?: string | null
+          optimized_cv?: string
+          original_cv?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
