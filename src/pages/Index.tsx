@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSavedOptimizations } from '@/hooks/useSavedOptimizations';
 import { reviews } from '@/data/reviews';
 import type { AppStep } from '@/types/cv';
+import { PDFExportModal } from '@/components/PDFExportModal';
 import { 
   Upload, 
   Zap, 
@@ -27,13 +28,15 @@ import {
   Link,
   Type,
   Save,
-  Loader2
+  Loader2,
+  FileDown
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [step, setStep] = useState<AppStep>('home');
   const [showGDPR, setShowGDPR] = useState(false);
+  const [showPDFExport, setShowPDFExport] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
   const [saving, setSaving] = useState(false);
   const { showBanner, accept, decline } = useCookieConsent();
@@ -456,7 +459,7 @@ const Index = () => {
                       <h3 className="text-xl font-bold text-foreground">Optimalisert CV</h3>
                       <Button variant="outline" size="sm" onClick={downloadCV} className="gap-2">
                         <Download className="w-4 h-4" />
-                        Last ned
+                        Tekst
                       </Button>
                     </div>
                     <div className="bg-primary/5 rounded-lg p-4 h-96 overflow-y-auto text-sm text-foreground whitespace-pre-wrap font-mono">
@@ -470,7 +473,7 @@ const Index = () => {
                       <h3 className="text-xl font-bold text-foreground">Søknadsbrev</h3>
                       <Button variant="outline" size="sm" onClick={downloadCoverLetter} className="gap-2">
                         <Download className="w-4 h-4" />
-                        Last ned
+                        Tekst
                       </Button>
                     </div>
                     <div className="bg-primary/5 rounded-lg p-4 h-96 overflow-y-auto text-sm text-foreground whitespace-pre-wrap">
@@ -509,16 +512,25 @@ const Index = () => {
                   <h3 className="text-2xl font-bold text-primary-foreground mb-2">
                     Last ned komplett pakke
                   </h3>
-                  <p className="text-primary-foreground/80 mb-6">CV + Søknadsbrev i én fil</p>
+                  <p className="text-primary-foreground/80 mb-6">Eksporter til profesjonell PDF med valgfri mal</p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button
                       variant="secondary"
                       size="lg"
-                      onClick={downloadResults}
+                      onClick={() => setShowPDFExport(true)}
                       className="gap-2"
                     >
+                      <FileDown className="w-5 h-5" />
+                      Eksporter til PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={downloadResults}
+                      className="gap-2 bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20 hover:bg-primary-foreground/20"
+                    >
                       <Download className="w-5 h-5" />
-                      Last ned alt
+                      Last ned tekst
                     </Button>
                     <Button
                       variant="outline"
@@ -533,6 +545,13 @@ const Index = () => {
                     </Button>
                   </div>
                 </div>
+
+                <PDFExportModal
+                  open={showPDFExport}
+                  onClose={() => setShowPDFExport(false)}
+                  cvContent={result.optimizedCV}
+                  coverLetterContent={result.coverLetter}
+                />
               </>
             ) : (
               <div className="text-center py-16">
