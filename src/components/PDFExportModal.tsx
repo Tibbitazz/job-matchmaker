@@ -50,23 +50,35 @@ export function PDFExportModal({
     [style, primaryColor, fontFamily]
   );
 
-  // Generate preview data URL
-  const previewDataUrl = useMemo(() => {
+  // Generate preview as blob URL for better iframe compatibility
+  const previewBlobUrl = useMemo(() => {
     try {
       const content = previewType === 'cv' ? cvContent : coverLetterContent;
-      if (!content) return null;
+      if (!content || content.trim().length === 0) return null;
 
       const doc =
         previewType === 'cv'
           ? generateCVPdf(content, options)
           : generateCoverLetterPdf(content, options);
 
-      return doc.output('datauristring');
+      // Use blob instead of data URI for better iframe support
+      const blob = doc.output('blob');
+      return URL.createObjectURL(blob);
     } catch (error) {
       console.error('Preview generation error:', error);
       return null;
     }
   }, [cvContent, coverLetterContent, options, previewType]);
+
+  // Clean up blob URL when component unmounts or URL changes
+  const [currentBlobUrl, setCurrentBlobUrl] = useState<string | null>(null);
+  
+  useMemo(() => {
+    if (currentBlobUrl) {
+      URL.revokeObjectURL(currentBlobUrl);
+    }
+    setCurrentBlobUrl(previewBlobUrl);
+  }, [previewBlobUrl]);
 
   const handleExport = () => {
     try {
@@ -261,9 +273,9 @@ export function PDFExportModal({
               </div>
             </div>
             <div className="border rounded-lg bg-muted/30 h-[500px] overflow-hidden">
-              {previewDataUrl ? (
+              {previewBlobUrl ? (
                 <iframe
-                  src={previewDataUrl}
+                  src={previewBlobUrl}
                   className="w-full h-full"
                   title="PDF Preview"
                 />
